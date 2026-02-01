@@ -141,7 +141,7 @@ ggplot(CIG_plot, aes(x = time, y = value, color = series)) +
        color = "Series") +
   theme_minimal()
 
-# testing on second computers
+# testing on second computer
 
 
 
