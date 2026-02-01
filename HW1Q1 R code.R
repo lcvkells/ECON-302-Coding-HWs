@@ -1,7 +1,7 @@
-#ECON 302 GDP HW1Q1.1
+# ECON 302 GDP HW1Q1.1
 
-#install.packages("tidyverse")
-#install.packages(c("cansim", "statcanR")) # used after q1.1
+# install.packages("tidyverse")
+# install.packages(c("cansim", "statcanR")) # used after q1.1
 
 #LOAD PACKAGES
 library(tidyverse)
@@ -48,8 +48,10 @@ sum(is.na(GDP_REAL_long$gdp_real))
 # Plotting graphs
 ggplot(GDP_NOMINAL_long, aes(x = time, y = gdp_nominal)) +
   geom_line(color ="lightgreen", linewidth=1.3) +
-  scale_x_continuous(breaks = seq(1, 258, by = 40), # every 10 years
-                     labels = seq(1961, 2025, by = 10)) +
+  scale_x_continuous(breaks = seq(1, max(CIG_plot$time), 
+                                  by = 40), # every 10 yrs
+                     labels = seq(1961, 2025, 
+                                  by = 10)) +
   labs(title = "Nominal GDP in Canada (Quarterly)",
        x = "Year",
        y = "GDP (Current Prices, Millions of Dollars)") +
@@ -57,19 +59,21 @@ ggplot(GDP_NOMINAL_long, aes(x = time, y = gdp_nominal)) +
 
 ggplot(GDP_REAL_long, aes(x = time, y = gdp_real)) +
   geom_line(color ="pink", linewidth=1.3) +
-  scale_x_continuous(breaks = seq(1, 258, by = 40), # every 10 years
-                     labels = seq(1961, 2025, by = 10)) +
+  scale_x_continuous(breaks = seq(1, max(CIG_plot$time), 
+                                  by = 40),
+                     labels = seq(1961, 2025, 
+                                  by = 10)) +
   labs(title = "Real GDP in Canada (Quarterly)",
        x = "Year",
        y = "GDP (Current Prices, Millions of Dollars)") +
   theme_minimal()
 
 
-#ECON 302 GDP HW1Q1.2
+# ECON 302 GDP HW1Q1.2
 
 # Consumption using REAL GDP
 
-C_real <- GDP_REAL_1961to2025 |>
+C_real <- GDP_REAL_1961to2025 |> 
   filter(Estimates == "Household final consumption expenditure") |>
   mutate(across(-Estimates, as.numeric)) |>
   pivot_longer(cols = -Estimates,
@@ -100,6 +104,9 @@ G_real <- GDP_REAL_1961to2025 |>
   drop_na(government) |>
   mutate(time = row_number())
 
+summary(G_real$government)
+
+
 # Double Checking Results
 
 GDP_REAL_1961to2025 |>
@@ -108,37 +115,38 @@ GDP_REAL_1961to2025 |>
                           "General governments final consumption expenditure")) |>
   select(Estimates, `Q1 1961`, `Q2 1961`, `Q3 1961`, `Q4 1961`)
 
-
 # Visualization
 C_plot <- C_real |>
   select(time, value = consumption) |>
   mutate(series = "Consumption")
-
 I_plot <- I_real |>
   select(time, value = investment) |>
   mutate(series = "Investment")
-
 G_plot <- G_real |>
   select(time, value = government) |>
   mutate(series = "Government")
 
-
-CIG_plot <- bind_rows(C_plot,
-                      I_plot,
-                      G_plot)
+CIG_plot <- bind_rows(C_plot, I_plot, G_plot)
 
 ggplot(CIG_plot, aes(x = time, y = value, color = series)) +
   geom_line(linewidth = 1) +
-  labs(
-    title = "Real Consumption, Investment, and Government Spending in Canada",
-    x = "Time (Quarterly index)",
-    y = "Chained 2017 dollars (millions)",
-    color = "Series"
-  ) +
+  scale_x_continuous(
+    breaks = seq(1, max(CIG_plot$time), 
+                 by = 20),  # every 10 years
+    labels = seq(1961, 2025, 
+                 by = 5)) +
+  labs(title = "Real Consumption, Investment, and Government Spending in Canada",
+       x = "Year",
+       y = "Chained 2017 dollars (millions)",
+       color = "Series") +
   theme_minimal()
 
+# testing on second computers
 
-#ECON 302 GDP HW1Q1.3
+
+
+
+# ECON 302 GDP HW1Q1.3
 
 
 
