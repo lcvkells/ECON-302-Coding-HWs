@@ -3,6 +3,8 @@
 # install.packages("tidyverse")
 # install.packages(c("cansim", "statcanR")) # used after q1.1
 
+# NOTE TO SELF: TO commit git: git pull, make changes, save, git commit -m "Clear message describing what you changed", git push
+
 #LOAD PACKAGES
 library(tidyverse)
 
@@ -29,11 +31,7 @@ GDP_NOMINAL_long <- GDP_NOMINAL_1961to2025 |>
                values_to = "gdp_nominal") |>
   mutate(time = row_number()) |>
   drop_na(gdp_nominal)
-
-nrow(GDP_NOMINAL_long)
-sum(is.na(GDP_NOMINAL_long$gdp_nominal))
-head(GDP_NOMINAL_long[, c("quarter","gdp_nominal","time")])
-
+ 
 GDP_REAL_long <- GDP_NOMINAL_1961to2025 |>
   filter(Estimates == "Gross domestic product at market prices") |>
   mutate(across(-Estimates, as.numeric)) |>
@@ -43,15 +41,19 @@ GDP_REAL_long <- GDP_NOMINAL_1961to2025 |>
   mutate(time = row_number()) |>
   drop_na(gdp_real)
 
+# Sanity Checks  
+nrow(GDP_NOMINAL_long)
+sum(is.na(GDP_NOMINAL_long$gdp_nominal))
+head(GDP_NOMINAL_long[, c("quarter","gdp_nominal","time")])
 sum(is.na(GDP_REAL_long$gdp_real))
 
 # Plotting graphs
 ggplot(GDP_NOMINAL_long, aes(x = time, y = gdp_nominal)) +
   geom_line(color ="lightgreen", linewidth=1.3) +
   scale_x_continuous(breaks = seq(1, max(CIG_plot$time), 
-                                  by = 40), # every 10 yrs
+                                  by = 8), # every 10 yrs
                      labels = seq(1961, 2025, 
-                                  by = 10)) +
+                                  by = 2)) +
   labs(title = "Nominal GDP in Canada (Quarterly)",
        x = "Year",
        y = "GDP (Current Prices, Millions of Dollars)") +
@@ -139,12 +141,9 @@ ggplot(CIG_plot, aes(x = time, y = value, color = series)) +
        x = "Year",
        y = "Chained 2017 dollars (millions)",
        color = "Series") +
-  theme_minimal()
+  theme_minimal() #commit to git
 
-# testing on second computers
-
-
-
+# testing git commitfrom secondary computer
 
 # ECON 302 GDP HW1Q1.3
 
