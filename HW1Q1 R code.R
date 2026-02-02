@@ -1,14 +1,17 @@
-# ECON 302 GDP HW1Q1.1
+# ECON 302 GDP HW1Q1
 
 # install.packages("tidyverse")
-# install.packages(c("cansim", "statcanR")) # used after q1.1
-
+# install.packagesc(("vtable", "kableExtra"))
 # NOTE TO SELF: TO commit git: git pull, make changes, save, git commit -m "Clear message describing what you changed", git push
 
 #LOAD PACKAGES
 library(tidyverse)
 
-# READING CSV & removing unnecessary headers
+
+# PART 1
+# NOMINAL AND REAL GDP
+
+# Reading CSV & removing unnecessary headers
 GDP_NOMINAL_1961to2025 <- read_csv("3610010401-noSymbol-current_prices.csv",
                                    skip = 11) 
 # Nominal GDP, period: quarterly ; headers removed
@@ -31,7 +34,7 @@ GDP_NOMINAL_long <- GDP_NOMINAL_1961to2025 |>
                values_to = "gdp_nominal") |>
   mutate(time = row_number()) |>
   drop_na(gdp_nominal)
- 
+
 GDP_REAL_long <- GDP_NOMINAL_1961to2025 |>
   filter(Estimates == "Gross domestic product at market prices") |>
   mutate(across(-Estimates, as.numeric)) |>
@@ -49,7 +52,7 @@ sum(is.na(GDP_REAL_long$gdp_real))
 
 # Plotting graphs
 ggplot(GDP_NOMINAL_long, aes(x = time, y = gdp_nominal)) +
-  geom_line(color ="lightgreen", linewidth=1.3) +
+  geom_line(color ="green", linewidth=1) +
   scale_x_continuous(breaks = seq(1, max(CIG_plot$time), 
                                   by = 8), # every 10 yrs
                      labels = seq(1961, 2025, 
@@ -60,7 +63,7 @@ ggplot(GDP_NOMINAL_long, aes(x = time, y = gdp_nominal)) +
   theme_minimal()
 
 ggplot(GDP_REAL_long, aes(x = time, y = gdp_real)) +
-  geom_line(color ="pink", linewidth=1.3) +
+  geom_line(color ="pink", linewidth=1) +
   scale_x_continuous(breaks = seq(1, max(CIG_plot$time), 
                                   by = 40),
                      labels = seq(1961, 2025, 
@@ -71,8 +74,8 @@ ggplot(GDP_REAL_long, aes(x = time, y = gdp_real)) +
   theme_minimal()
 
 
-# ECON 302 GDP HW1Q1.2
-
+# PART 2
+# FINDING CONSUMPTION, INVESTMENTS, AND GOVERNMENT SPENDING
 # Consumption using REAL GDP
 
 C_real <- GDP_REAL_1961to2025 |> 
@@ -141,14 +144,110 @@ ggplot(CIG_plot, aes(x = time, y = value, color = series)) +
        x = "Year",
        y = "Chained 2017 dollars (millions)",
        color = "Series") +
-  theme_minimal() #commit to git
-
-# testing on second computer
+  theme_minimal() 
 
 
+# PART 3 
+# GMI RATIO POST 1997
 
-# ECON 302 GDP HW1Q1.3
+GDP_IncomeBased_1997to2025 <- read.csv("GDP_Income1997-3610010301-noSymbol.csv",
+                                       skip = 10)
+head(GDP_IncomeBased_1961to2025)
+colnames(GDP_IncomeBased_1961to2025)
+
+# Filtering
+gross_mixed_income <- GDP_IncomeBased_1997to2025 |>
+  filter(Estimates=="Gross mixed income") |>
+  pivot_longer(cols = -Estimates,
+               names_to = "quarter",
+               values_to = "GMI") |>
+  mutate(GMI = as.numeric(gsub(",", "", GMI))) |>
+  drop_na(GMI)
+
+gross_domestic_income <- GDP_IncomeBased_1997to2025 |>
+  filter(Estimates=="Gross domestic product at market prices") |>
+  pivot_longer(cols = -Estimates,
+               names_to = "quarter",
+               values_to = "GDI") |>
+  mutate(GDI = as.numeric(gsub(",", "", GDI))) |>
+  drop_na(GDI)
+
+GMI_ratio_1997 <- tibble(quarter = gross_mixed_income$quarter,
+                         ratio = gross_mixed_income$GMI/gross_domestic_income$GDI)|>
+  mutate(year = as.integer(substr(quarter, nchar(quarter)-3, nchar(quarter))),
+         qtr  = as.integer(substr(quarter, 2, 2)),
+         time = (year - 1997) * 4 + qtr) |>
+  arrange(time)
+GMI_ratio_1997
+colnames(GMI_ratio_1997)
 
 
+ggplot(GMI_ratio_1997, aes(x = time, y = ratio)) +
+  geom_line(color = "purple", linewidth = 1) +
+  scale_x_continuous(
+    breaks = seq(0.5, max(GMI_ratio_1997$time), by = 4),
+    labels = seq(1997, 2025, by = 1)) +
+  labs( title = "Gross Mixed Income as a Share of Total Income in Canada",
+        x = "Year",
+        y = "Gross Mixed Income / GDP (Income-based)") +
+  theme_minimal()
+
+# PART 4
+# REAL GDP 2019-2025
+library(vtable)
+
+GDP_industry_2019too2025 <- read.csv("GDP_Real_2019-2025-3610044901-noSymbol.csv",
+                                     skip = 11) 
+names(GDP_industry_2019too2025)
+GDP_industry <- GDP_REAL_2019too2025 |>
+  rename(Industry = "North.American.Industry.Classification.System..NAICS..3")
+colnames(GDP_industry)
+
+GDP_industry_long <- GDP_industry |>
+  pivot_longer(
+    cols = -Industry,
+    names_to = "period",
+    values_to = "GDP"
+  ) |>
+  mutate(GDP = as.numeric(gsub(",", "", GDP))) |>
+  drop_na(GDP)
+
+head(GDP_industry_long)
+
+GDP_industry_annual_wages <- GDP_industry_long |>
+  mutate(year = as.integer(substr(.data$period, 4, 7))) |>
+  group_by(Industry, year) |>
+  summarise(GDP = mean(GDP), .groups = "drop")
+head(GDP_industry_annual_wages)
+
+balanced_GDP_industry <- GDP_industry_annual_wages |>
+  group_by(Industry) |>
+  filter(n_distinct(year) == 7) |>
+  ungroup() #to filter for industries that have data for all years
+
+
+#computing!
+industry_growth <- balanced_GDP_industry |>
+  filter(year %in% c(2019, 2025)) |>
+  pivot_wider(names_from = year,
+    values_from = GDP) |>
+  mutate(growth = (`2025` - `2019`) / `2019`)
+
+
+industry_growth <- industry_growth |>
+  mutate(classification = case_when(
+      growth > mean(industry_growth$growth) + sd(industry_growth$growth) ~ "More than 1 SD above mean",
+      growth < mean(industry_growth$growth) - sd(industry_growth$growth) ~ "More than 1 SD below mean",
+      TRUE ~ "Within 1 SD of mean"))
+
+top_3 <- industry_growth |>
+  arrange(desc(growth)) |>
+  slice(1:3)
+
+bottom_3 <- industry_growth |>
+  arrange(growth) |>
+  slice(1:3)
+
+final_table <- bind_rows(top_3, bottom_3)
 
 
