@@ -1,13 +1,17 @@
-# ECON 302 GDP HW1Q1
+
 
 # install.packages("tidyverse")
 # install.packagesc(("vtable", "kableExtra"))
+# install.packages("stargazer")
 # NOTE TO SELF: TO commit git: git pull, make changes, save, git commit -m "Clear message describing what you changed", git push
 
 #LOAD PACKAGES
 library(tidyverse)
+library(vtable)
+library(stargazer)
 
 
+# ECON 302 GDP HW1Q1
 # PART 1
 # NOMINAL AND REAL GDP
 
@@ -240,14 +244,15 @@ industry_growth <- industry_growth |>
       growth < mean(industry_growth$growth) - sd(industry_growth$growth) ~ "More than 1 SD below mean",
       TRUE ~ "Within 1 SD of mean"))
 
-top_3 <- industry_growth |>
-  arrange(desc(growth)) |>
-  slice(1:3)
+stargazer(industry_growth,
+          type = "html",
+          summary = FALSE,
+          digits = 3,
+          title = "Industries by Real GDP Growth (2019–2025)",
+          out = "industry_growth.html")
+browseURL("industry_growth.html")
 
-bottom_3 <- industry_growth |>
-  arrange(growth) |>
-  slice(1:3)
+rstudioapi::viewer("industry_growth.html")
 
-final_table <- bind_rows(top_3, bottom_3)
 
 
