@@ -252,7 +252,6 @@ stargazer(industry_growth,
           out = "industry_growth.html")
 browseURL("industry_growth.html")
 
-rstudioapi::viewer("industry_growth.html")
 
 
 
