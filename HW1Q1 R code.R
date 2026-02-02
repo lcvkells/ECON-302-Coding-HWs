@@ -141,17 +141,11 @@ ggplot(CIG_plot, aes(x = time, y = value, color = series)) +
        x = "Year",
        y = "Chained 2017 dollars (millions)",
        color = "Series") +
-<<<<<<< HEAD
   theme_minimal() #commit to git
-=======
-  theme_minimal()
 
 # testing on second computer
 
 
->>>>>>> b893e14ac409088b2d761d8f4ddbbff728ba0715
-
-# testing git commitfrom secondary computer
 
 # ECON 302 GDP HW1Q1.3
 
