@@ -7,7 +7,6 @@
 
 #LOAD PACKAGES
 library(tidyverse)
-library(vtable)
 library(stargazer)
 
 
@@ -156,8 +155,8 @@ ggplot(CIG_plot, aes(x = time, y = value, color = series)) +
 
 GDP_IncomeBased_1997to2025 <- read.csv("GDP_Income1997-3610010301-noSymbol.csv",
                                        skip = 10)
-head(GDP_IncomeBased_1961to2025)
-colnames(GDP_IncomeBased_1961to2025)
+head(GDP_IncomeBased_1997to2025)
+colnames(GDP_IncomeBased_1997to2025)
 
 # Filtering
 gross_mixed_income <- GDP_IncomeBased_1997to2025 |>
@@ -200,10 +199,10 @@ ggplot(GMI_ratio_1997, aes(x = time, y = ratio)) +
 # REAL GDP 2019-2025
 library(vtable)
 
-GDP_industry_2019too2025 <- read.csv("GDP_Real_2019-2025-3610044901-noSymbol.csv",
+GDP_industry_2019to2025 <- read.csv("GDP_Real_2019-2025-3610044901-noSymbol.csv",
                                      skip = 11) 
-names(GDP_industry_2019too2025)
-GDP_industry <- GDP_REAL_2019too2025 |>
+names(GDP_industry_2019to2025)
+GDP_industry <- GDP_industry_2019to2025 |>
   rename(Industry = "North.American.Industry.Classification.System..NAICS..3")
 colnames(GDP_industry)
 
@@ -238,19 +237,33 @@ industry_growth <- balanced_GDP_industry |>
   mutate(growth = (`2025` - `2019`) / `2019`)
 
 
-industry_growth <- industry_growth |>
-  mutate(classification = case_when(
-      growth > mean(industry_growth$growth) + sd(industry_growth$growth) ~ "More than 1 SD above mean",
-      growth < mean(industry_growth$growth) - sd(industry_growth$growth) ~ "More than 1 SD below mean",
-      TRUE ~ "Within 1 SD of mean"))
+#industry_growth <- industry_growth |>
+#  mutate(classification = case_when(
+#      growth > mean(industry_growth$growth) + sd(industry_growth$growth) ~ "More than 1 SD above mean",
+#      growth < mean(industry_growth$growth) - sd(industry_growth$growth) ~ "More than 1 SD below mean",
+#      TRUE ~ "Within 1 SD of mean"))
 
-stargazer(industry_growth,
-          type = "html",
-          summary = FALSE,
-          digits = 3,
-          title = "Industries by Real GDP Growth (2019–2025)",
-          out = "industry_growth.html")
+top3 <- industry_growth |>
+  arrange(desc(growth)) |>
+  slice(1:3)
+
+bottom3 <- industry_growth |>
+  arrange(growth) |>
+  slice(1:3)
+
+final_table <- bind_rows(top3, bottom3) |>
+  select(Industry, `2019`, `2025`, growth)
+
+
+stargazer(final_table,
+  type = "html",
+  summary = FALSE,
+  digits = 4,
+  title = "Top 3 and Bottom 3 Industries by Real GDP Growth (2019–2025)",
+  out = "industry_growth.html")
+
 browseURL("industry_growth.html")
+
 
 
 
