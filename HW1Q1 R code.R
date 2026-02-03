@@ -1,7 +1,6 @@
 
 
 # install.packages("tidyverse")
-# install.packagesc(("vtable", "kableExtra"))
 # install.packages("stargazer")
 # NOTE TO SELF: TO commit git: git pull, make changes, save, git commit -m "Clear message describing what you changed", git push
 
@@ -197,21 +196,19 @@ ggplot(GMI_ratio_1997, aes(x = time, y = ratio)) +
 
 # PART 4
 # REAL GDP 2019-2025
-library(vtable)
 
 GDP_industry_2019to2025 <- read.csv("GDP_Real_2019-2025-3610044901-noSymbol.csv",
-                                     skip = 11) 
+                                    skip = 11) 
 names(GDP_industry_2019to2025)
+
 GDP_industry <- GDP_industry_2019to2025 |>
   rename(Industry = "North.American.Industry.Classification.System..NAICS..3")
 colnames(GDP_industry)
 
 GDP_industry_long <- GDP_industry |>
-  pivot_longer(
-    cols = -Industry,
-    names_to = "period",
-    values_to = "GDP"
-  ) |>
+  pivot_longer(cols = -Industry,
+               names_to = "period",
+               values_to = "GDP") |>
   mutate(GDP = as.numeric(gsub(",", "", GDP))) |>
   drop_na(GDP)
 
@@ -233,7 +230,7 @@ balanced_GDP_industry <- GDP_industry_annual_wages |>
 industry_growth <- balanced_GDP_industry |>
   filter(year %in% c(2019, 2025)) |>
   pivot_wider(names_from = year,
-    values_from = GDP) |>
+              values_from = GDP) |>
   mutate(growth = (`2025` - `2019`) / `2019`)
 
 
@@ -256,13 +253,15 @@ final_table <- bind_rows(top3, bottom3) |>
 
 
 stargazer(final_table,
-  type = "html",
-  summary = FALSE,
-  digits = 4,
-  title = "Top 3 and Bottom 3 Industries by Real GDP Growth (2019–2025)",
-  out = "industry_growth.html")
+          type = "html",
+          summary = FALSE,
+          digits = 4,
+          title = "Top 3 and Bottom 3 Industries by Real GDP Growth (2019–2025)",
+          out = "industry_growth.html")
 
 browseURL("industry_growth.html")
+
+# FINAL VERSION -- COMMIT TO GIT
 
 
 
