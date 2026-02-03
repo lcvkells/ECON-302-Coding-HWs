@@ -2,7 +2,7 @@
 
 # install.packages("tidyverse")
 # install.packages("stargazer")
-# NOTE TO SELF: TO commit git: git pull, make changes, save, 
+# NOTE TO SELF: TO commit git: git pull, make changes, save, git add "code_name.R"
 #               git commit -m "Clear message describing what you changed" OR
 #               git commit --no-gpg-sign -m "FINAL VERSION", git push
 
