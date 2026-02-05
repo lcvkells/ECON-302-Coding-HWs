@@ -39,7 +39,7 @@ GDP_NOMINAL_long <- GDP_NOMINAL_1961to2025 |>
   mutate(time = row_number()) |>
   drop_na(gdp_nominal)
 
-GDP_REAL_long <- GDP_NOMINAL_1961to2025 |>
+GDP_REAL_long <- GDP_REAL_1961to2025 |>
   filter(Estimates == "Gross domestic product at market prices") |>
   mutate(across(-Estimates, as.numeric)) |>
   pivot_longer(cols = -Estimates,
@@ -48,19 +48,15 @@ GDP_REAL_long <- GDP_NOMINAL_1961to2025 |>
   mutate(time = row_number()) |>
   drop_na(gdp_real)
 
-# Sanity Checks  
-nrow(GDP_NOMINAL_long)
-sum(is.na(GDP_NOMINAL_long$gdp_nominal))
-head(GDP_NOMINAL_long[, c("quarter","gdp_nominal","time")])
-sum(is.na(GDP_REAL_long$gdp_real))
-
 # Plotting graphs
 ggplot(GDP_NOMINAL_long, aes(x = time, y = gdp_nominal)) +
   geom_line(color ="green", linewidth=1) +
-  scale_x_continuous(breaks = seq(1, max(CIG_plot$time), 
-                                  by = 8), # every 10 yrs
+  scale_x_continuous(breaks = seq(1, max(GDP_NOMINAL_long$time), 
+                                  by = 20), # every 10 yrs
                      labels = seq(1961, 2025, 
-                                  by = 2)) +
+                                  by = 5)) +
+  scale_y_continuous(labels = function(x) format(x, big.mark = ",", 
+                                                 scientific = FALSE))+
   labs(title = "Nominal GDP in Canada (Quarterly)",
        x = "Year",
        y = "GDP (Current Prices, Millions of Dollars)") +
@@ -68,14 +64,41 @@ ggplot(GDP_NOMINAL_long, aes(x = time, y = gdp_nominal)) +
 
 ggplot(GDP_REAL_long, aes(x = time, y = gdp_real)) +
   geom_line(color ="pink", linewidth=1) +
-  scale_x_continuous(breaks = seq(1, max(CIG_plot$time), 
-                                  by = 40),
+  scale_x_continuous(breaks = seq(1, max(GDP_REAL_long$time), 
+                                  by = 20),
                      labels = seq(1961, 2025, 
-                                  by = 10)) +
+                                  by = 5)) +
+  scale_y_continuous(labels = function(x) format(x, big.mark = ",",
+                                                 scientific = FALSE))+
   labs(title = "Real GDP in Canada (Quarterly)",
        x = "Year",
        y = "GDP (Current Prices, Millions of Dollars)") +
   theme_minimal()
+
+
+#CHECKING FOR DIFFERENCES IN THE GDPs
+GDP_both_long <- GDP_NOMINAL_long |>
+  select(time, quarter, gdp_nominal) |>
+  left_join(GDP_REAL_long |> select(time, gdp_real), by = "time") |>
+  pivot_longer(cols = c(gdp_nominal, gdp_real),
+               names_to = "series",
+               values_to = "gdp")
+
+ggplot(GDP_both_long, aes(x = time, y = gdp, color = series)) +
+  geom_line(linewidth = 1) +
+  scale_x_continuous(
+    breaks = seq(1, max(GDP_both_long$time), by = 40),
+    labels = seq(1961, 2025, by = 10)) +
+  scale_color_manual(
+    values = c("gdp_nominal" = "green", "gdp_real" = "pink"),
+    labels = c("gdp_nominal" = "Nominal GDP (current prices)",
+               "gdp_real"    = "Real GDP (chained 2017 dollars)")) +
+  labs(title = "Nominal vs Real GDP in Canada (Quarterly)",
+       x = "Year",
+       y = "GDP (Millions of Dollars)",
+       color = NULL) +
+  theme_minimal()
+
 
 
 # PART 2
@@ -141,7 +164,7 @@ ggplot(CIG_plot, aes(x = time, y = value, color = series)) +
   geom_line(linewidth = 1) +
   scale_x_continuous(
     breaks = seq(1, max(CIG_plot$time), 
-                 by = 20),  # every 10 years
+                 by = 20),  
     labels = seq(1961, 2025, 
                  by = 5)) +
   labs(title = "Real Consumption, Investment, and Government Spending in Canada",
